@@ -99,8 +99,8 @@ tests/
 
 ## Contributors
 
-- Agrim Bajpai (Project Lead)
-- Krish (Co-Lead)
+- Agrim Bajpai
+- Krish
 - Team Members (Feature Module Developers)
 
 ---
