@@ -1,0 +1,66 @@
+[
+    {
+        "transaction_id": "2d2c2fc0-b030-43c3-ae81-69f9e80fd5d1",
+        "account_id": "47ccfcf7-5348-4947-a6d9-236a4f4abf54",
+        "transaction_type": "DEPOSIT",
+        "amount": "300",
+        "description": "ATM Cash Deposit",
+        "timestamp": "2026-07-16T16:56:31.697984+00:00"
+    },
+    {
+        "transaction_id": "4a89e9a7-d65b-4f26-9d94-3554b945ea53",
+        "account_id": "47ccfcf7-5348-4947-a6d9-236a4f4abf54",
+        "transaction_type": "WITHDRAWAL",
+        "amount": "50",
+        "description": "ATM Cash Withdrawal",
+        "timestamp": "2026-07-16T16:57:15.970640+00:00"
+    },
+    {
+        "transaction_id": "82633bd1-a05c-4775-a4d4-9d438b2e5225",
+        "account_id": "be28dead-61cf-444f-9a87-c92aa1bde15a",
+        "transaction_type": "DEPOSIT",
+        "amount": "4000",
+        "description": "Initial Deposit",
+        "timestamp": "2026-07-16T17:12:48.631937+00:00"
+    },
+    {
+        "transaction_id": "8707edc8-76c9-4017-96a2-c661f758cbd0",
+        "account_id": "be28dead-61cf-444f-9a87-c92aa1bde15a",
+        "transaction_type": "WITHDRAWAL",
+        "amount": "900",
+        "description": "ATM Cash Withdrawal",
+        "timestamp": "2026-07-16T17:13:34.319530+00:00"
+    },
+    {
+        "transaction_id": "af3386af-8265-49c6-abac-ca6068bb1ec0",
+        "account_id": "be28dead-61cf-444f-9a87-c92aa1bde15a",
+        "transaction_type": "TRANSFER_OUT",
+        "amount": "100",
+        "description": "Transfer to 1009876543",
+        "timestamp": "2026-07-16T17:14:25.611662+00:00"
+    },
+    {
+        "transaction_id": "4edab5ea-e816-4dd1-92e1-6fdb2c8d9183",
+        "account_id": "ecc6cbad-9f9d-4a5d-acd7-94947fdfe14c",
+        "transaction_type": "TRANSFER_IN",
+        "amount": "100",
+        "description": "Transfer from 2001910019",
+        "timestamp": "2026-07-16T17:14:25.611662+00:00"
+    },
+    {
+        "transaction_id": "201d5a15-d9d1-4d09-8293-fd81a54d9002",
+        "account_id": "47ccfcf7-5348-4947-a6d9-236a4f4abf54",
+        "transaction_type": "TRANSFER_OUT",
+        "amount": "50",
+        "description": "Transfer to 1009876543",
+        "timestamp": "2026-07-16T17:16:00.236194+00:00"
+    },
+    {
+        "transaction_id": "27399144-2d15-4d30-922b-8f2b6b7b5412",
+        "account_id": "ecc6cbad-9f9d-4a5d-acd7-94947fdfe14c",
+        "transaction_type": "TRANSFER_IN",
+        "amount": "50",
+        "description": "Transfer from 1001234567",
+        "timestamp": "2026-07-16T17:16:00.236194+00:00"
+    }
+]

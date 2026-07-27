@@ -1,0 +1,17 @@
+[
+    {
+        "account_id": "47ccfcf7-5348-4947-a6d9-236a4f4abf54",
+        "account_number": "1001234567",
+        "balance": "200.00"
+    },
+    {
+        "account_id": "ecc6cbad-9f9d-4a5d-acd7-94947fdfe14c",
+        "account_number": "1009876543",
+        "balance": "150.00"
+    },
+    {
+        "account_id": "be28dead-61cf-444f-9a87-c92aa1bde15a",
+        "account_number": "2001910019",
+        "balance": "3000.00"
+    }
+]

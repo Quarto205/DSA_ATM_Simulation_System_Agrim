@@ -1,0 +1,23 @@
+Python
+
+pycache/
+*.py[cod]
+*$py.class
+*.env
+venv/
+env/
+
+Java
+
+*.class
+
+IDEs / OS
+
+.vscode/
+.idea/
+.DS_Store
+
+Application Data (Ignore active database files, keep the folder)
+
+data/*.json
+!data/.keep
