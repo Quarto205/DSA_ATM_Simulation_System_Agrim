@@ -20,7 +20,7 @@ This project heavily utilizes Object-Oriented Programming (OOP) concepts:
 
 ## 🚀 Getting Started
 Used python to test the working logic, as working in java or cpp with the SOLID principles and implementing this architecture was a very tricky task. I've implemented it in both Java and Python, but to test, I have used the Python library Streamlit.
-### 1. Python CLI (Core Architecture)
+### 1. Python CLI and Java oops code(Core Architecture)
 Requires Python 3.12+. Run the composition root to start the terminal interface.
 ```bash
 python main.py
