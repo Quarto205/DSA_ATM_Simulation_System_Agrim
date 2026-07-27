@@ -42,9 +42,3 @@ javac ATMSimulation.java ATMGUI.java
 java ATMGUI
 pip install streamlit
 streamlit run app.py
-
-
-
-
-
-<img width="1448" height="675" alt="Screenshot 2026-07-27 195837" src="https://github.com/user-attachments/assets/2f7df0a5-9854-4a9d-a8bf-e32f0e5d1b29" />
