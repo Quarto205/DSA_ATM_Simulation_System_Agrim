@@ -1,0 +1,378 @@
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.io.File;
+import java.math.BigDecimal;
+
+public class ATMGUI extends JFrame {
+    
+    // Dependencies (Controllers)
+    private AuthenticationService authService;
+    private BankService bankService;
+    private Session currentSession;
+
+    // UI Components
+    private JPanel screenPanel;
+    private CardLayout cardLayout;
+    private String activeScreen = "IDLE";
+    private String transactionType = ""; // Tracks if we are doing a "WITHDRAW" or "DEPOSIT"
+    private String currentInput = "";    // Holds numbers typed on the keypad
+
+    // Text Fields (The ATM Screen elements)
+    private JTextField cardField;
+    private JPasswordField pinField;
+    private JTextField amountField;
+    private JLabel messageLabel;
+    private JLabel balanceLabel;
+
+    // Theme Colors (Tailwind Slate/Blue palette mapped to Java)
+    private Color colorBg = new Color(30, 41, 59); // Slate 800
+    private Color colorScreen = new Color(30, 58, 138); // Blue 900
+    private Color colorText = new Color(241, 245, 249); // Slate 100
+    private Color colorKeypad = new Color(51, 65, 85); // Slate 700
+    private Font mainFont = new Font("SansSerif", Font.BOLD, 20);
+
+    public ATMGUI(AuthenticationService auth, BankService bank) {
+        this.authService = auth;
+        this.bankService = bank;
+
+        // Window Settings
+        setTitle("GlobeCorp Bank ATM");
+        setSize(800, 650);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null); // Center on screen
+        setLayout(new BorderLayout(10, 10));
+        getContentPane().setBackground(colorBg);
+
+        // Header
+        JLabel header = new JLabel("GLOBECORP BANK ATM", SwingConstants.CENTER);
+        header.setFont(new Font("SansSerif", Font.BOLD, 28));
+        header.setForeground(new Color(96, 165, 250));
+        header.setBorder(new EmptyBorder(20, 0, 10, 0));
+        add(header, BorderLayout.NORTH);
+
+        // Build the middle screen and the bottom keypad
+        setupScreenArea();
+        setupKeypadArea();
+    }
+
+    private void setupScreenArea() {
+        // CardLayout allows us to swap panels (screens) easily without opening new windows
+        cardLayout = new CardLayout();
+        screenPanel = new JPanel(cardLayout);
+        screenPanel.setBackground(colorScreen);
+        screenPanel.setBorder(BorderFactory.createLineBorder(new Color(15, 23, 42), 8));
+        screenPanel.setPreferredSize(new Dimension(700, 300));
+
+        // Register all possible screens
+        screenPanel.add(createIdleScreen(), "IDLE");
+        screenPanel.add(createPinScreen(), "PIN");
+        screenPanel.add(createMenuScreen(), "MENU");
+        screenPanel.add(createAmountScreen(), "AMOUNT");
+        screenPanel.add(createMessageScreen(), "MESSAGE");
+        screenPanel.add(createBalanceScreen(), "BALANCE");
+
+        // Wrapper to keep the screen centered
+        JPanel wrapper = new JPanel(new GridBagLayout());
+        wrapper.setBackground(colorBg);
+        wrapper.add(screenPanel);
+        add(wrapper, BorderLayout.CENTER);
+    }
+
+    private JPanel createIdleScreen() {
+        JPanel p = new JPanel(new GridBagLayout());
+        p.setBackground(colorScreen);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0; gbc.insets = new Insets(10, 10, 10, 10);
+
+        JLabel welcome = new JLabel("Welcome");
+        welcome.setFont(new Font("SansSerif", Font.BOLD, 36));
+        welcome.setForeground(colorText);
+        p.add(welcome, gbc);
+
+        gbc.gridy++;
+        JLabel hint = new JLabel("Enter your card number to begin:");
+        hint.setForeground(new Color(191, 219, 254));
+        hint.setFont(mainFont);
+        p.add(hint, gbc);
+
+        gbc.gridy++;
+        cardField = new JTextField("4000123456789010", 16);
+        cardField.setFont(mainFont);
+        cardField.setHorizontalAlignment(JTextField.CENTER);
+        p.add(cardField, gbc);
+
+        gbc.gridy++;
+        JButton btn = new JButton("Insert Card");
+        btn.setFont(mainFont);
+        btn.setBackground(new Color(34, 197, 94)); // Green
+        btn.setForeground(Color.WHITE);
+        btn.addActionListener(e -> switchScreen("PIN"));
+        p.add(btn, gbc);
+
+        return p;
+    }
+
+    private JPanel createPinScreen() {
+        JPanel p = new JPanel(new GridBagLayout());
+        p.setBackground(colorScreen);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0; gbc.insets = new Insets(10, 10, 10, 10);
+
+        JLabel lbl = new JLabel("Enter Your PIN");
+        lbl.setFont(new Font("SansSerif", Font.BOLD, 28));
+        lbl.setForeground(colorText);
+        p.add(lbl, gbc);
+
+        gbc.gridy++;
+        pinField = new JPasswordField(4);
+        pinField.setFont(new Font("SansSerif", Font.BOLD, 48));
+        pinField.setHorizontalAlignment(JTextField.CENTER);
+        pinField.setEditable(false); // Can only type using the UI keypad
+        p.add(pinField, gbc);
+
+        return p;
+    }
+
+    private JPanel createMenuScreen() {
+        JPanel p = new JPanel(new GridLayout(2, 2, 10, 10));
+        p.setBackground(colorScreen);
+        p.setBorder(new EmptyBorder(20, 20, 20, 20));
+
+        JButton wBtn = createMenuButton("Withdraw Cash >");
+        wBtn.addActionListener(e -> { transactionType = "WITHDRAW"; switchScreen("AMOUNT"); });
+
+        JButton dBtn = createMenuButton("Deposit Cash >");
+        dBtn.addActionListener(e -> { transactionType = "DEPOSIT"; switchScreen("AMOUNT"); });
+
+        JButton bBtn = createMenuButton("< Check Balance");
+        bBtn.addActionListener(e -> checkBalance());
+
+        JButton exitBtn = createMenuButton("< Return Card");
+        exitBtn.setBackground(new Color(153, 27, 27)); // Red
+        exitBtn.addActionListener(e -> switchScreen("IDLE"));
+
+        p.add(wBtn); p.add(bBtn); p.add(dBtn); p.add(exitBtn);
+        return p;
+    }
+
+    private JPanel createAmountScreen() {
+        JPanel p = new JPanel(new GridBagLayout());
+        p.setBackground(colorScreen);
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridy = 0; gbc.insets = new Insets(10,10,10,10);
+
+        JLabel lbl = new JLabel("Enter Amount");
+        lbl.setFont(new Font("SansSerif", Font.BOLD, 28));
+        lbl.setForeground(colorText);
+        p.add(lbl, gbc);
+
+        gbc.gridy++;
+        amountField = new JTextField(6);
+        amountField.setFont(new Font("SansSerif", Font.BOLD, 36));
+        amountField.setHorizontalAlignment(JTextField.CENTER);
+        amountField.setEditable(false);
+        p.add(amountField, gbc);
+
+        return p;
+    }
+
+    private JPanel createMessageScreen() {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBackground(colorScreen);
+        messageLabel = new JLabel("Processing...", SwingConstants.CENTER);
+        messageLabel.setFont(new Font("SansSerif", Font.BOLD, 24));
+        messageLabel.setForeground(colorText);
+        p.add(messageLabel, BorderLayout.CENTER);
+
+        JButton btn = new JButton("Continue");
+        btn.setFont(mainFont);
+        btn.addActionListener(e -> switchScreen(currentSession == null ? "IDLE" : "MENU"));
+        p.add(btn, BorderLayout.SOUTH);
+        return p;
+    }
+
+    private JPanel createBalanceScreen() {
+        JPanel p = new JPanel(new BorderLayout());
+        p.setBackground(colorScreen);
+        balanceLabel = new JLabel("$0.00", SwingConstants.CENTER);
+        balanceLabel.setFont(new Font("SansSerif", Font.BOLD, 48));
+        balanceLabel.setForeground(new Color(74, 222, 128)); // Green
+        p.add(balanceLabel, BorderLayout.CENTER);
+
+        JLabel title = new JLabel("Available Balance", SwingConstants.CENTER);
+        title.setFont(mainFont);
+        title.setForeground(colorText);
+        p.add(title, BorderLayout.NORTH);
+
+        JButton btn = new JButton("Back to Menu");
+        btn.setFont(mainFont);
+        btn.addActionListener(e -> switchScreen("MENU"));
+        p.add(btn, BorderLayout.SOUTH);
+        return p;
+    }
+
+    private JButton createMenuButton(String text) {
+        JButton b = new JButton(text);
+        b.setFont(mainFont);
+        b.setBackground(new Color(30, 64, 175)); // Blue 800
+        b.setForeground(Color.WHITE);
+        b.setFocusPainted(false);
+        return b;
+    }
+
+    private void setupKeypadArea() {
+        JPanel padWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 20));
+        padWrapper.setBackground(colorBg);
+
+        JPanel pad = new JPanel(new GridLayout(4, 4, 10, 10));
+        pad.setBackground(colorKeypad);
+        pad.setBorder(new EmptyBorder(15, 15, 15, 15));
+
+        String[] keys = {
+            "1", "2", "3", "CANCEL",
+            "4", "5", "6", "CLEAR",
+            "7", "8", "9", "ENTER",
+            "",  "0", "",  ""
+        };
+
+        for (String k : keys) {
+            if (k.isEmpty()) {
+                pad.add(new JLabel(""));
+                continue;
+            }
+            JButton b = new JButton(k);
+            b.setFont(new Font("SansSerif", Font.BOLD, 18));
+            b.setPreferredSize(new Dimension(80, 50));
+            b.setFocusPainted(false);
+            
+            if (k.equals("CANCEL")) b.setBackground(new Color(239, 68, 68)); // Red
+            else if (k.equals("CLEAR")) b.setBackground(new Color(234, 179, 8)); // Yellow
+            else if (k.equals("ENTER")) b.setBackground(new Color(34, 197, 94)); // Green
+            else b.setBackground(new Color(209, 213, 219)); // Gray
+
+            if (k.equals("CANCEL") || k.equals("CLEAR") || k.equals("ENTER")) {
+                b.setForeground(Color.WHITE);
+            }
+
+            b.addActionListener(this::handleKeypadClick);
+            pad.add(b);
+        }
+        padWrapper.add(pad);
+        add(padWrapper, BorderLayout.SOUTH);
+    }
+
+    private void switchScreen(String screenName) {
+        activeScreen = screenName;
+        currentInput = ""; // Clear buffer
+        pinField.setText("");
+        amountField.setText("");
+        
+        if (screenName.equals("IDLE")) {
+            if (currentSession != null) currentSession.endSession();
+            currentSession = null;
+        }
+        cardLayout.show(screenPanel, screenName);
+    }
+
+    private void handleKeypadClick(ActionEvent e) {
+        String key = ((JButton) e.getSource()).getText();
+
+        if (key.equals("CANCEL")) {
+            switchScreen(currentSession == null ? "IDLE" : "MENU");
+            return;
+        }
+        if (key.equals("CLEAR")) {
+            currentInput = "";
+            updateActiveField();
+            return;
+        }
+        if (key.equals("ENTER")) {
+            processEnterKey();
+            return;
+        }
+
+        // Handle numeric input limits
+        if (activeScreen.equals("PIN") && currentInput.length() < 4) currentInput += key;
+        else if (activeScreen.equals("AMOUNT") && currentInput.length() < 7) currentInput += key;
+        
+        updateActiveField();
+    }
+
+    private void updateActiveField() {
+        if (activeScreen.equals("PIN")) pinField.setText(currentInput);
+        else if (activeScreen.equals("AMOUNT")) amountField.setText(currentInput);
+    }
+
+    private void processEnterKey() {
+        try {
+            if (activeScreen.equals("PIN")) {
+                // Call the actual Service from our Model
+                currentSession = authService.loginCustomer(cardField.getText(), currentInput);
+                switchScreen("MENU");
+            } 
+            else if (activeScreen.equals("AMOUNT")) {
+                BigDecimal amt = new BigDecimal(currentInput);
+                if (transactionType.equals("WITHDRAW")) {
+                    bankService.withdraw(currentSession.getUserId(), amt);
+                    showMessage("Cash Dispensed! New Balance: $" + bankService.getBalance(currentSession.getUserId()));
+                } else {
+                    bankService.deposit(currentSession.getUserId(), amt);
+                    showMessage("Cash Deposited! New Balance: $" + bankService.getBalance(currentSession.getUserId()));
+                }
+            }
+        } catch (Exception ex) {
+            showMessage("Error: " + ex.getMessage());
+        }
+    }
+
+    private void checkBalance() {
+        BigDecimal bal = bankService.getBalance(currentSession.getUserId());
+        balanceLabel.setText("$" + bal.toPlainString());
+        switchScreen("BALANCE");
+    }
+
+    private void showMessage(String msg) {
+        messageLabel.setText(msg);
+        switchScreen("MESSAGE");
+    }
+
+    public static void main(String[] args) {
+        
+        // 1. Setup Data Directory
+        String dataDir = "data";
+        new File(dataDir).mkdirs();
+
+        // 2. Instantiate Repositories
+        Repository<Account> accountRepo = new JsonRepository<>(dataDir + "/accounts.json", Account::fromJson);
+        Repository<Card> cardRepo = new JsonRepository<>(dataDir + "/cards.json", Card::fromJson);
+        Repository<Transaction> txRepo = new JsonRepository<>(dataDir + "/transactions.json", Transaction::fromJson);
+        Repository<Admin> adminRepo = new JsonRepository<>(dataDir + "/admin.json", Admin::fromJson);
+        Repository<ATM> atmRepo = new JsonRepository<>(dataDir + "/atm.json", ATM::fromJson);
+        Repository<Session> sessionRepo = new JsonRepository<>(dataDir + "/sessions.json", Session::fromJson);
+
+        // 3. Instantiate Services
+        CashService cashService = new CashService(atmRepo);
+        AuthenticationService authService = new AuthenticationService(cardRepo, adminRepo, sessionRepo);
+        BankService bankService = new BankService(accountRepo, txRepo, cashService);
+
+        // 4. Seed test data if the files are empty
+        if (accountRepo.getAll().isEmpty()) {
+            Account acc = new Account("1001234567");
+            accountRepo.save(acc, acc.getAccountId().toString());
+            Card card = new Card("4000123456789010", AuthenticationService.hashPin("1234"), acc.getAccountId());
+            cardRepo.save(card, card.getCardId().toString());
+            acc.deposit(new BigDecimal("500.00")); // Give test user $500
+            accountRepo.save(acc, acc.getAccountId().toString());
+        }
+
+        // 5. Launch the Graphical Interface
+        SwingUtilities.invokeLater(() -> {
+            try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } 
+            catch (Exception e) {}
+            
+            new ATMGUI(authService, bankService).setVisible(true);
+        });
+    }
+}
