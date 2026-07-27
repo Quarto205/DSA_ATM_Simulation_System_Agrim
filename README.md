@@ -1,7 +1,5 @@
 # 🏦 ATM Simulation System
-
 A robust, multi-language ATM simulation system built to demonstrate advanced Software Engineering best practices. 
-
 This project goes beyond a simple script by implementing **Clean Architecture (Domain-Driven Design)**, **SOLID principles**, and **Dependency Injection**. It includes three distinct interfaces: a Python Command-Line Interface, a Java Desktop GUI, and a modern Streamlit Web Application.
 
 ## ✨ Key Features
@@ -21,7 +19,7 @@ This project heavily utilizes Object-Oriented Programming (OOP) concepts:
 * **Composition:** Services are built by injecting dependencies (Repositories) via constructors.
 
 ## 🚀 Getting Started
-
+Used python to test the working logic, as working in java or cpp with the SOLID principles and implementing this architecture was a very tricky task. I've implemented it in both Java and Python, but to test, I have used the Python library Streamlit.
 ### 1. Python CLI (Core Architecture)
 Requires Python 3.12+. Run the composition root to start the terminal interface.
 ```bash
